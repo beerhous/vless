@@ -26,12 +26,10 @@ jobs:
           node-version: "lts/*"
 
       - name: 安装全局依赖项
-        run: |
-          npm install -g javascript-obfuscator
+        run: npm install -g javascript-obfuscator
 
       - name: 下载 BPB worker.js 文件
-        run: |
-          wget -O origin.js https://raw.githubusercontent.com/bia-pain-bache/BPB-Worker-Panel/main/build/unobfuscated-worker.js
+        run: wget -O origin.js https://raw.githubusercontent.com/bia-pain-bache/BPB-Worker-Panel/main/build/unobfuscated-worker.js
 
       - name: 混淆 BPB worker.js 文件
         run: |
@@ -48,8 +46,7 @@ jobs:
             --unicode-escape-sequence true
 
       - name: 显示混淆前后差异（可选，用于调试）
-        run: |
-          diff origin.js _worker.js || echo "文件已更新"
+        run: diff origin.js _worker.js || echo "文件已更新"
 
       - name: 提交更改
         uses: stefanzweifel/git-auto-commit-action@v5
