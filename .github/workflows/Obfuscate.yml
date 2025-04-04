@@ -5,7 +5,8 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 1 * * *"  # 每天 1:00 AM 触发
+        # Runs everyday at 1:00 AM
+        - cron: "0 1 * * *"
 
 permissions:
   contents: write
@@ -15,42 +16,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 检出代码仓库
       - name: Check out the code
         uses: actions/checkout@v4
 
-      # 2. 设置 Node.js 环境（使用最新版本）
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "latest"
 
-      # 3. 安装全局依赖：javascript-obfuscator
       - name: Install dependencies
-        run: npm install -g javascript-obfuscator
+        run: |
+          npm install -g javascript-obfuscator
 
-      # 4. 下载 BPB Worker 的未混淆 JS 文件
       - name: Clone BPB workjs
-        run: wget -O origin.js https://raw.githubusercontent.com/bia-pain-bache/BPB-Worker-Panel/refs/heads/main/build/unobfuscated-worker.js
+        run: |
+          wget -O origin.js https://raw.githubusercontent.com/bia-pain-bache/BPB-Worker-Panel/refs/heads/main/build/unobfuscated-worker.js
 
-      # 5. 对下载的 JS 文件进行混淆处理
-      # 调整了混淆选项，取消了 control-flow-flattening 和 dead-code-injection，
-      # 以降低启动时 CPU 负载，避免 Cloudflare 报 “Script startup exceeded CPU time limit” 错误
       - name: Obfuscate BPB worker js
         run: |
           javascript-obfuscator origin.js --output _worker.js \
-            --compact true \
-            --control-flow-flattening false \
-            --dead-code-injection false \
-            --identifier-names-generator hexadecimal \
-            --rename-globals true \
-            --string-array true \
-            --string-array-encoding 'rc4' \
-            --string-array-threshold 0.75 \
-            --transform-object-keys true \
-            --unicode-escape-sequence true
+          --compact true \
+          --control-flow-flattening true \
+          --control-flow-flattening-threshold 1 \
+          --dead-code-injection true \
+          --dead-code-injection-threshold 1 \
+          --identifier-names-generator hexadecimal \
+          --rename-globals true \
+          --string-array true \
+          --string-array-encoding 'rc4' \
+          --string-array-threshold 1 \
+          --transform-object-keys true \
+          --unicode-escape-sequence true
 
-      # 6. 自动提交混淆后的文件至 Git 仓库
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
